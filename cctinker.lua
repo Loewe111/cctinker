@@ -10,6 +10,9 @@ function cctinker:new(termObject)
   self.screenObjects = {}
   self.background = colors.black
   self.COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black}
+  local x, y = self.term.getSize()
+  self.X = x
+  self.Y = y
   return o
 end
 
@@ -64,15 +67,12 @@ function cctinker:setBackground(color)
 end
 
 function cctinker:stopLoop()
+  self:_draw()
   self.looping = false
 end
 
 function cctinker:getObject(id)
   return self.screenObjects[id]
-end
-
-function cctinker:getSize()
-  return self.term.getSize()
 end
 
 function cctinker:remove(screenObject)
@@ -97,8 +97,8 @@ function cctinker:text(x, y, text, color, background, id)
     width = #text,
     height = 1,
     text = text,
-    color = color,
-    background = background
+    color = color or colors.white,
+    background = background or colors.black
   }
   textObject.draw = function()
     self.term.setCursorPos(textObject.x, textObject.y)
@@ -120,8 +120,8 @@ function cctinker:textarea(x, y, width, height, text, color, background, id)
     width = width,
     height = height,
     text = text,
-    color = color,
-    background = background
+    color = color or colors.white,
+    background = background or colors.black
   }
   textareaObject.draw = function()
     self.term.setTextColor(textareaObject.color)
@@ -148,8 +148,8 @@ function cctinker:button(x, y, text, color, background, callback, id)
     width = #text,
     height = 1,
     text = text,
-    color = color,
-    background = background,
+    color = color or colors.white,
+    background = background or colors.black,
     click = callback
   }
   buttonObject.draw = function()
@@ -172,8 +172,8 @@ function cctinker:checkbox(x, y, text, color, background, callback, id)
     width = #text + 4,
     height = 1,
     text = text,
-    color = color,
-    background = background,
+    color = color or colors.white,
+    background = background or colors.black,
     checked = false
   }
   checkboxObject.draw = function()
