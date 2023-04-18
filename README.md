@@ -1,5 +1,7 @@
 # `cctinker`, a tkinter-like Computercraft Graphics API
 
+![grafik](https://user-images.githubusercontent.com/78087018/232889000-0592b489-f5b1-487a-add8-bd083f2f97e9.png)
+
 ## How to use
 
 1. Install using `wget https://raw.githubusercontent.com/Loewe111/cctinker/master/cctinker.lua`
