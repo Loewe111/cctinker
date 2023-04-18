@@ -25,4 +25,8 @@ screen:loop()
 
 ## Documentation
 
-Documentation will be available under the Wiki tab.
+Documentation is available at [the wiki](https://github.com/Loewe111/cctinker/wiki)
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
