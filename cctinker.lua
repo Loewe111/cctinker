@@ -138,8 +138,8 @@ function cctinker:textarea(args)
     width = args.width,
     height = args.height,
     text = args.text,
-    color = color or colors.white,
-    background = background or colors.black
+    color = args.color or colors.white,
+    background = args.background or colors.black
   }
   textareaObject.draw = function()
     self.term.setTextColor(textareaObject.color)
