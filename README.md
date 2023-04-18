@@ -1,6 +1,6 @@
 # `cctinker`, a tkinter-like Computercraft Graphics API
 
-![grafik](https://user-images.githubusercontent.com/78087018/232889000-0592b489-f5b1-487a-add8-bd083f2f97e9.png)
+![grafik](https://user-images.githubusercontent.com/78087018/232889309-2e0134d6-e5e2-4d07-b042-6895ee2c0f31.png)
 
 ## How to use
 
