@@ -16,6 +16,15 @@ function cctinker:new(termObject)
   return o
 end
 
+function cctinker:_checkArgs(args, requiredArgs)
+  if type(args) ~= "table" then error("Args is not a table") end
+  for i, v in pairs(requiredArgs) do
+    if args[v] == nil then
+      error("Missing required argument: " .. v)
+    end
+  end
+end
+
 function cctinker:_draw()
   self.term.setBackgroundColor(self.background)
   self.term.clear()
@@ -45,7 +54,7 @@ function cctinker:loop()
         for i, obj in pairs(self.screenObjects) do
           if obj ~= nil then
             if obj.click ~= nil and y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1 then
-              obj:click()
+              obj:click(x, y, button)
             end
           end
         end
@@ -67,8 +76,15 @@ function cctinker:setBackground(color)
 end
 
 function cctinker:stopLoop()
-  self:_draw()
   self.looping = false
+end
+
+function cctinker:exit()
+  self:stopLoop()
+  self.term.setTextColor(colors.white)
+  self.term.setBackgroundColor(colors.black)
+  self.term.clear()
+  self.term.setCursorPos(1, 1)
 end
 
 function cctinker:getObject(id)
@@ -87,18 +103,19 @@ function cctinker:clear()
   self.screenObjects = {}
 end
 
-function cctinker:text(x, y, text, color, background, id)
-  local id =  id or self:_generateId()
+function cctinker:text(args)
+  local requiredArgs = {"x", "y", "text"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local textObject = {
-    id = id,
     type = "text",
-    x = x,
-    y = y,
-    width = #text,
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = #args.text,
     height = 1,
-    text = text,
-    color = color or colors.white,
-    background = background or colors.black
+    text = args.text,
+    color = args.color or colors.white,
+    background = args.background or colors.black
   }
   textObject.draw = function()
     self.term.setCursorPos(textObject.x, textObject.y)
@@ -106,20 +123,21 @@ function cctinker:text(x, y, text, color, background, id)
     self.term.setBackgroundColor(textObject.background)
     self.term.write(textObject.text)
   end
-  self.screenObjects[id] = textObject
+  self.screenObjects[textObject.id] = textObject
   return textObject
 end
 
-function cctinker:textarea(x, y, width, height, text, color, background, id)
-  local id =  id or self:_generateId()
+function cctinker:textarea(args)
+  local requiredArgs = {"x", "y", "width", "height", "text"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local textareaObject = {
-    id = id,
     type = "textarea",
-    x = x,
-    y = y,
-    width = width,
-    height = height,
-    text = text,
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width,
+    height = args.height,
+    text = args.text,
     color = color or colors.white,
     background = background or colors.black
   }
@@ -134,23 +152,24 @@ function cctinker:textarea(x, y, width, height, text, color, background, id)
       self.term.write(text)
     end
   end
-  self.screenObjects[id] = textareaObject
+  self.screenObjects[textareaObject.id] = textareaObject
   return textareaObject
 end
 
-function cctinker:button(x, y, text, color, background, callback, id)
-  local id =  id or self:_generateId()
+function cctinker:button(args)
+  local requiredArgs = {"x", "y", "text", "callback"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local buttonObject = {
-    id = id,
     type = "button",
-    x = x,
-    y = y,
-    width = #text,
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = #args.text,
     height = 1,
-    text = text,
-    color = color or colors.white,
-    background = background or colors.black,
-    click = callback
+    text = args.text,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    click = args.callback
   }
   buttonObject.draw = function()
     self.term.setCursorPos(buttonObject.x, buttonObject.y)
@@ -158,23 +177,25 @@ function cctinker:button(x, y, text, color, background, callback, id)
     self.term.setBackgroundColor(buttonObject.background)
     self.term.write(buttonObject.text)
   end
-  self.screenObjects[id] = buttonObject
+  self.screenObjects[buttonObject.id] = buttonObject
   return buttonObject
 end
 
-function cctinker:checkbox(x, y, text, color, background, callback, id)
-  local id =  id or self:_generateId()
+function cctinker:checkbox(args)
+  local requiredArgs = {"x", "y", "text"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local checkboxObject = {
-    id = id,
     type = "checkbox",
-    x = x,
-    y = y,
-    width = #text + 4,
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = #args.text + 4,
     height = 1,
-    text = text,
-    color = color or colors.white,
-    background = background or colors.black,
-    checked = false
+    text = args.text,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    checked = args.checked or false,
+    callback = args.callback
   }
   checkboxObject.draw = function()
     self.term.setCursorPos(checkboxObject.x, checkboxObject.y)
@@ -182,19 +203,19 @@ function cctinker:checkbox(x, y, text, color, background, callback, id)
     self.term.setBackgroundColor(checkboxObject.background)
     self.term.write("[")
     if checkboxObject.checked then
-      self.term.write("X")
+      self.term.write("x")
     else
       self.term.write(" ")
     end
     self.term.write("] " .. checkboxObject.text)
   end
-  checkboxObject.click = function()
+  checkboxObject.click = function(x, y, button)
     checkboxObject.checked = not checkboxObject.checked
-    if callback ~= nil then
-      callback(checkboxObject.checked)
+    if checkboxObject.callback ~= nil then
+      checkboxObject.callback(x, y, button, checkboxObject.checked)
     end
   end
-  self.screenObjects[id] = checkboxObject
+  self.screenObjects[checkboxObject.id] = checkboxObject
   return checkboxObject
 end
 
