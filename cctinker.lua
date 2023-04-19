@@ -1,15 +1,16 @@
 -- Computercraft tkinter like Screen Library
 
-local cctinker = {}
+local cctinker = {
+  screenObjects = {},
+  background = colors.black,
+  COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black},
+}
 
 function cctinker:new(termObject)
   local o = {}
   setmetatable(o, self)
   self.__index = self
   self.term = termObject or term
-  self.screenObjects = {}
-  self.background = colors.black
-  self.COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black}
   local x, y = self.term.getSize()
   self.X = x
   self.Y = y
@@ -101,6 +102,14 @@ end
 
 function cctinker:clear()
   self.screenObjects = {}
+end
+
+function cctinker:getObjects()
+  return self.screenObjects
+end
+
+function cctinker:setObjects(objects)
+  self.screenObjects = objects
 end
 
 function cctinker:text(args)
