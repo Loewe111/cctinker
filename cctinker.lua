@@ -219,11 +219,11 @@ function cctinker:checkbox(args)
   return checkboxObject
 end
 
-function cctinker:toggleSwitch(args)
+function cctinker:switch(args)
   local requiredArgs = {"x", "y", "text"}
   self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local switchObject = {
-    type = "toggleSwitch",
+    type = "switch",
     id = args.id or self:_generateId(),
     x = args.x,
     y = args.y,
