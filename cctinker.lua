@@ -219,4 +219,44 @@ function cctinker:checkbox(args)
   return checkboxObject
 end
 
+function cctinker:toggleSwitch(args)
+  local requiredArgs = {"x", "y", "text"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local switchObject = {
+    type = "toggleSwitch",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = #args.text + 4,
+    height = 1,
+    text = args.text,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    state = args.state or false,
+  }
+  switchObject.click = function(x, y, button)
+    switchObject.state = not switchObject.state
+    if args.click then
+      args.click(x, y, button, switchObject.state)
+    end
+  end
+  switchObject.draw = function()
+    self.term.setCursorPos(switchObject.x, switchObject.y)
+    self.term.setTextColor(colors.white)
+    if switchObject.state then
+      self.term.setBackgroundColor(colors.lime)
+      self.term.write("  \127")
+    else
+      self.term.setBackgroundColor(colors.red)
+      self.term.write("\127  ")
+    end
+    self.term.setTextColor(switchObject.color)
+    self.term.setBackgroundColor(switchObject.background)
+    self.term.write(" " .. switchObject.text)
+  end
+  
+  self.screenObjects[switchObject.id] = switchObject 
+  return switchObject
+end
+
 return cctinker
