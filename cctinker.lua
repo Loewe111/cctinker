@@ -236,8 +236,8 @@ function cctinker:toggleSwitch(args)
   }
   switchObject.click = function(x, y, button)
     switchObject.state = not switchObject.state
-    if args.click then
-      args.click(x, y, button, switchObject.state)
+    if args.callback then
+      args.callback(x, y, button, switchObject.state)
     end
   end
   switchObject.draw = function()
