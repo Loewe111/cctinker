@@ -15,12 +15,17 @@ end})
 
 screen:textarea({x=2, y=6, width=45, height=5, text="cctinker is a tkinter-like Computercraft Graphics API by Loewe_111. You are reading this inside of a Textarea, which wraps its text.", color=colors.black, background=colors.white})
 
-screen:checkbox({x=2, y=12, text="Enable Cool Lorem Ipsum", color=colors.black, background=colors.white, callback=function(_, _, _, checked)
+checkbox = screen:checkbox({x=2, y=12, text="Enable Cool Lorem Ipsum", color=colors.black, background=colors.white, callback=function(_, _, _, checked)
+  toggle.state = checked
   if checked then
     screen:textarea({x=2, y=14, width=40, height=4, text=lorem, color=colors.lime, background=colors.black, id="lorem"})
   else
     screen:remove("lorem")
   end
+end})
+
+toggle = screen:switch({x=screen.X-10, y=2, text="Switch", callback=function(_, _, _, state)
+  checkbox:click()
 end})
 
 screen:loop()
