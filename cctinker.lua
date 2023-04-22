@@ -17,11 +17,19 @@ function cctinker:new(termObject)
   return o
 end
 
-function cctinker:_checkArgs(args, requiredArgs)
+function cctinker:_checkArgs(args, requiredArgs, optionalArgs)
   if type(args) ~= "table" then error("Args is not a table") end
-  for i, v in pairs(requiredArgs) do
-    if args[v] == nil then
-      error("Missing required argument: " .. v)
+  for arg_name, arg_type in pairs(requiredArgs) do
+    if args[arg_name] == nil then
+      error("Missing required argument: '" .. arg_name .. "' of type " .. arg_type)
+    end
+    if type(args[arg_name]) ~= arg_type then
+      error("Argument '" .. arg_name .. "' is of type " .. type(args[arg_name]) .. ", expected " .. arg_type)
+    end
+  end
+  for arg_name, arg_type in pairs(optionalArgs) do
+    if args[arg_name] ~= nil and type(args[arg_name]) ~= arg_type then
+      error("Argument '" .. arg_name .. "' is of type " .. type(args[arg_name]) .. ", expected " .. arg_type)
     end
   end
 end
@@ -153,8 +161,9 @@ function cctinker:setObjects(objects)
 end
 
 function cctinker:text(args)
-  local requiredArgs = {"x", "y", "text"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", text="string"}
+  local optionalArgs = {color="number", background="number"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local textObject = {
     type = "text",
     id = args.id or self:_generateId(),
@@ -177,8 +186,9 @@ function cctinker:text(args)
 end
 
 function cctinker:textarea(args)
-  local requiredArgs = {"x", "y", "width", "height", "text"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", width="number", height="number", text="string"}
+  local optionalArgs = {color="number", background="number"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local textareaObject = {
     type = "textarea",
     id = args.id or self:_generateId(),
@@ -206,8 +216,9 @@ function cctinker:textarea(args)
 end
 
 function cctinker:button(args)
-  local requiredArgs = {"x", "y", "text", "callback"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", text="string", callback="function"}
+  local optionalArgs = {color="number", background="number"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local buttonObject = {
     type = "button",
     id = args.id or self:_generateId(),
@@ -231,8 +242,9 @@ function cctinker:button(args)
 end
 
 function cctinker:checkbox(args)
-  local requiredArgs = {"x", "y", "text"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", text="string"}
+  local optionalArgs = {color="number", background="number", checked="boolean", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local checkboxObject = {
     type = "checkbox",
     id = args.id or self:_generateId(),
@@ -269,8 +281,9 @@ function cctinker:checkbox(args)
 end
 
 function cctinker:switch(args)
-  local requiredArgs = {"x", "y", "text"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", text="string"}
+  local optionalArgs = {color="number", background="number", state="boolean", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local switchObject = {
     type = "switch",
     id = args.id or self:_generateId(),
@@ -309,8 +322,9 @@ function cctinker:switch(args)
 end
 
 function cctinker:input(args)
-  local requiredArgs = {"x", "y", "placeholder"}
-  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local requiredArgs = {x="number", y="number", placeholder="string"}
+  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local inputObject = {
     type = "input",
     id = args.id or self:_generateId(),
