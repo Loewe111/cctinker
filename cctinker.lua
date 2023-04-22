@@ -390,6 +390,7 @@ function cctinker:input(args)
     end
   end
   self.screenObjects[inputObject.id] = inputObject
+  return inputObject
 end
 
 return cctinker
