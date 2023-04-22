@@ -327,7 +327,8 @@ function cctinker:input(args)
       text = "",
       cursor = 1,
       focused = false
-    }
+    },
+    text = ""
   }
   inputObject.draw = function()
     local ccstrings = require("cc.strings")
@@ -356,6 +357,7 @@ function cctinker:input(args)
       inputObject.input.focused = false
       inputObject.callback(inputObject.input.text)
     end
+    inputObject.text = inputObject.input.text
   end
   inputObject.event_char = function(char)
     if inputObject.input.focused then
@@ -384,6 +386,7 @@ function cctinker:input(args)
     elseif key == "enter" then
       inputObject.input.focused = false
       inputObject.callback(inputObject.input.text)
+      inputObject.text = inputObject.input.text
     end
   end
   self.screenObjects[inputObject.id] = inputObject
