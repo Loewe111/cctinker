@@ -352,9 +352,10 @@ function cctinker:input(args)
     inputObject.input.focused = true
   end
   inputObject.event_defocus = function()
-    inputObject.input.focused = false
-    self.term.setCursorBlink(false)
-    inputObject.callback(inputObject.input.text)
+    if(inputObject.input.focused) then
+      inputObject.input.focused = false
+      inputObject.callback(inputObject.input.text)
+    end
   end
   inputObject.event_char = function(char)
     if inputObject.input.focused then
