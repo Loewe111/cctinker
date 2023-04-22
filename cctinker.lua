@@ -309,14 +309,14 @@ function cctinker:switch(args)
 end
 
 function cctinker:input(args)
-  local requiredArgs = {"x", "y", "callback"}
+  local requiredArgs = {"x", "y", "placeholder"}
   self:_checkArgs(args, requiredArgs) -- Error if required args are missing
   local inputObject = {
     type = "input",
     id = args.id or self:_generateId(),
     x = args.x,
     y = args.y,
-    width = args.width or args.placeholder and #args.placeholder or 10,
+    width = args.width or #args.placeholder,
     height = 1,
     placeholder = args.placeholder,
     color = args.color or colors.white,
@@ -355,7 +355,9 @@ function cctinker:input(args)
   inputObject.event_defocus = function()
     if(inputObject.input.focused) then
       inputObject.input.focused = false
-      inputObject.callback(inputObject.input.text)
+      if inputObject.callback ~= nil then
+        inputObject.callback(inputObject.input.text)
+      end
     end
     inputObject.text = inputObject.input.text
   end
@@ -385,7 +387,9 @@ function cctinker:input(args)
       end
     elseif key == "enter" then
       inputObject.input.focused = false
-      inputObject.callback(inputObject.input.text)
+      if inputObject.callback ~= nil then
+        inputObject.callback(inputObject.input.text)
+      end
       inputObject.text = inputObject.input.text
     end
   end
