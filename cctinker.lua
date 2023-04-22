@@ -280,6 +280,55 @@ function cctinker:checkbox(args)
   return checkboxObject
 end
 
+function cctinker:radio(args)
+  local requiredArgs = {x="number", y="number", options="table"}
+  local optionalArgs = {color="number", background="number", selected="number", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local radioObject = {
+    type = "radio",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = 0,
+    height = #args.options,
+    options = args.options,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    selected = args.selected or 1,
+    callback = args.callback
+  }
+  for i = 1, #radioObject.options do
+    radioObject.width = math.max(radioObject.width, #radioObject.options[i] + 4)
+  end
+  radioObject.draw = function()
+    for i = 1, #radioObject.options do
+      self.term.setCursorPos(radioObject.x, radioObject.y + i - 1)
+      self.term.setTextColor(radioObject.color)
+      self.term.setBackgroundColor(radioObject.background)
+      self.term.write("(")
+      if radioObject.selected == i then
+        self.term.write("\007")
+      else
+        self.term.write(" ")
+      end
+      self.term.write(") " .. radioObject.options[i])
+    end
+  end
+
+  radioObject.event_click = function(x, y, button)
+    local index = y - radioObject.y + 1
+    if index >= 1 and index <= #radioObject.options then
+      radioObject.selected = index
+      if radioObject.callback ~= nil then
+        radioObject.callback(radioObject.selected)
+      end
+    end
+  end
+
+  self.screenObjects[radioObject.id] = radioObject
+  return radioObject
+end
+
 function cctinker:switch(args)
   local requiredArgs = {x="number", y="number", text="string"}
   local optionalArgs = {color="number", background="number", state="boolean", callback="function"}
