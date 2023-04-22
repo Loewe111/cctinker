@@ -1,4 +1,4 @@
-local lib = require("cctinker")
+local lib = require(".cctinker")
 local screen = lib:new(term)
 
 local lorem = "> Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptate repellendus omnis, adipisci deleniti quo eos explicabo nesciunt!"
