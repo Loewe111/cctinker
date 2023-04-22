@@ -92,6 +92,13 @@ function cctinker:loop()
             obj.event_key(key, keycode, isHeld)
           end
         end
+      elseif event == "paste" then
+        local text = eventData[2]
+        for i, obj in pairs(self.screenObjects) do
+          if obj.event_paste ~= nil then
+            obj.event_paste(text)
+          end
+        end
       end
     end
   end
