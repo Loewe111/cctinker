@@ -69,8 +69,8 @@ screen:button({
   x=2,
   y=screen.Y-1,
   text="Exit",
-  color=colors.red,
-  background=colors.white,
+  color=colors.white,
+  background=colors.red,
   callback=function()
     screen:exit()
   end
