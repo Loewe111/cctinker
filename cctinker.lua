@@ -50,13 +50,46 @@ end
 function cctinker:loop()
   local eventLoop = function()
     while self.looping do
-      local event, button, x, y = os.pullEvent()
+      local eventData = {os.pullEvent()}
+      local event = eventData[1]
       if event == "mouse_click" then
+        local button, x, y = eventData[2], eventData[3], eventData[4]
         for i, obj in pairs(self.screenObjects) do
-          if obj ~= nil then
-            if obj.click ~= nil and y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1 then
-              obj:click(x, y, button)
-            end
+          local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
+          if obj.event_click ~= nil and insideBounds then
+            obj.event_click(x, y, button)
+          elseif obj.event_defocus ~= nil and not insideBounds then
+            obj.event_defocus()
+          end
+        end
+      elseif event == "mouse_scroll" then
+        local direction, x, y = eventData[2], eventData[3], eventData[4]
+        for i, obj in pairs(self.screenObjects) do
+          local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
+          if obj.event_scroll ~= nil and insideBounds then
+            obj.event_scroll(x, y, direction)
+          end
+        end
+      elseif event == "mouse_drag" then
+        local button, x, y = eventData[2], eventData[3], eventData[4]
+        for i, obj in pairs(self.screenObjects) do
+          if obj.event_drag ~= nil then
+            obj.event_drag(x, y, button)
+          end
+        end
+      elseif event == "char" then
+        local char = eventData[2]
+        for i, obj in pairs(self.screenObjects) do
+          if obj.event_char ~= nil then
+            obj.event_char(char)
+          end
+        end
+      elseif event == "key" then
+        local keycode, isHeld = eventData[2], eventData[3]
+        local key = keys.getName(keycode)
+        for i, obj in pairs(self.screenObjects) do
+          if obj.event_key ~= nil then
+            obj.event_key(key, keycode, isHeld)
           end
         end
       end
@@ -178,7 +211,7 @@ function cctinker:button(args)
     text = args.text,
     color = args.color or colors.white,
     background = args.background or colors.black,
-    click = args.callback
+    event_click = args.callback
   }
   buttonObject.draw = function()
     self.term.setCursorPos(buttonObject.x, buttonObject.y)
@@ -218,7 +251,7 @@ function cctinker:checkbox(args)
     end
     self.term.write("] " .. checkboxObject.text)
   end
-  checkboxObject.click = function(x, y, button)
+  checkboxObject.event_click = function(x, y, button)
     checkboxObject.checked = not checkboxObject.checked
     if checkboxObject.callback ~= nil then
       checkboxObject.callback(x, y, button, checkboxObject.checked)
@@ -243,7 +276,7 @@ function cctinker:switch(args)
     background = args.background or colors.black,
     state = args.state or false,
   }
-  switchObject.click = function(x, y, button)
+  switchObject.event_click = function(x, y, button)
     switchObject.state = not switchObject.state
     if args.callback then
       args.callback(x, y, button, switchObject.state)
@@ -266,6 +299,86 @@ function cctinker:switch(args)
   
   self.screenObjects[switchObject.id] = switchObject 
   return switchObject
+end
+
+function cctinker:input(args)
+  local requiredArgs = {"x", "y", "callback"}
+  self:_checkArgs(args, requiredArgs) -- Error if required args are missing
+  local inputObject = {
+    type = "input",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width or args.placeholder and #args.placeholder or 10,
+    height = 1,
+    placeholder = args.placeholder,
+    color = args.color or colors.white,
+    placeholderColor = args.placeholderColor or colors.gray,
+    background = args.background or colors.black,
+    callback = args.callback,
+    input = {
+      text = "",
+      cursor = 1,
+      focused = false
+    }
+  }
+  inputObject.draw = function()
+    local ccstrings = require("cc.strings")
+    self.term.setCursorPos(inputObject.x, inputObject.y)
+    if inputObject.input.text == "" then
+      self.term.setTextColor(inputObject.placeholderColor)
+      self.term.setBackgroundColor(inputObject.background)
+      self.term.write(string.sub(inputObject.placeholder, -inputObject.width))
+    else
+      self.term.setTextColor(inputObject.color)
+      self.term.setBackgroundColor(inputObject.background)
+      self.term.write(string.sub(inputObject.input.text, -inputObject.width))
+    end
+    if inputObject.input.cursor > inputObject.width then
+      self.term.setCursorPos(inputObject.x + inputObject.width, inputObject.y)
+    else
+      self.term.setCursorPos(inputObject.x + inputObject.input.cursor - 1, inputObject.y)
+    end
+    self.term.setCursorBlink(inputObject.input.focused)
+  end
+  inputObject.event_click = function(x, y, button)
+    inputObject.input.focused = true
+  end
+  inputObject.event_defocus = function()
+    inputObject.input.focused = false
+    self.term.setCursorBlink(false)
+    inputObject.callback(inputObject.input.text)
+  end
+  inputObject.event_char = function(char)
+    if inputObject.input.focused then
+      inputObject.input.text = string.sub(inputObject.input.text, 1, inputObject.input.cursor - 1) .. char .. string.sub(inputObject.input.text, inputObject.input.cursor)
+      inputObject.input.cursor = inputObject.input.cursor + 1
+    end
+  end
+  inputObject.event_key = function(key)
+    if key == "backspace" then
+      if inputObject.input.cursor > 1 then
+        inputObject.input.text = string.sub(inputObject.input.text, 1, inputObject.input.cursor - 2) .. string.sub(inputObject.input.text, inputObject.input.cursor)
+        inputObject.input.cursor = inputObject.input.cursor - 1
+      end
+    elseif key == "delete" then
+      if inputObject.input.cursor <= #inputObject.input.text then
+        inputObject.input.text = string.sub(inputObject.input.text, 1, inputObject.input.cursor - 1) .. string.sub(inputObject.input.text, inputObject.input.cursor + 1)
+      end
+    elseif key == "left" then
+      if inputObject.input.cursor > 1 then
+        inputObject.input.cursor = inputObject.input.cursor - 1
+      end
+    elseif key == "right" then
+      if inputObject.input.cursor <= #inputObject.input.text then
+        inputObject.input.cursor = inputObject.input.cursor + 1
+      end
+    elseif key == "enter" then
+      inputObject.input.focused = false
+      inputObject.callback(inputObject.input.text)
+    end
+  end
+  self.screenObjects[inputObject.id] = inputObject
 end
 
 return cctinker

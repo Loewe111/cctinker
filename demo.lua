@@ -25,7 +25,7 @@ checkbox = screen:checkbox({x=2, y=12, text="Enable Cool Lorem Ipsum", color=col
 end})
 
 toggle = screen:switch({x=screen.X-10, y=2, text="Switch", callback=function(_, _, _, state)
-  checkbox:click()
+  checkbox.event_click()
 end})
 
 screen:loop()
