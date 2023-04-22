@@ -367,6 +367,12 @@ function cctinker:input(args)
       inputObject.input.cursor = inputObject.input.cursor + 1
     end
   end
+  inputObject.event_paste = function(text)
+    if inputObject.input.focused then
+      inputObject.input.text = string.sub(inputObject.input.text, 1, inputObject.input.cursor - 1) .. text .. string.sub(inputObject.input.text, inputObject.input.cursor)
+      inputObject.input.cursor = inputObject.input.cursor + #text
+    end
+  end
   inputObject.event_key = function(key)
     if key == "backspace" then
       if inputObject.input.cursor > 1 then
