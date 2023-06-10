@@ -370,6 +370,64 @@ function cctinker:switch(args)
   return switchObject
 end
 
+function cctinker:tabSwitch(args)
+  local requiredArgs = {x="number", y="number", tabs="table"}
+  local optionalArgs = {color="number", background="number", selectedColor="number", selectedBackground="number", selected="number", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local tabSwitchObject = {
+    type = "tabSwitch",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = 0,
+    height = 1,
+    tabs = args.tabs,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    selectedColor = args.selectedColor or colors.white,
+    selectedBackground = args.selectedBackground or colors.red,
+    selected = args.selected or 1,
+    callback = args.callback
+  }
+  for i = 1, #tabSwitchObject.tabs do
+    tabSwitchObject.width = tabSwitchObject.width + #tabSwitchObject.tabs[i] + 2
+  end
+  tabSwitchObject.draw = function()
+    local x = tabSwitchObject.x
+    for i = 1, #tabSwitchObject.tabs do
+      self.term.setCursorPos(x, tabSwitchObject.y)
+      self.term.setTextColor(tabSwitchObject.color)
+      self.term.setBackgroundColor(tabSwitchObject.background)
+      if tabSwitchObject.selected == i then
+        self.term.setTextColor(tabSwitchObject.selectedColor)
+        self.term.setBackgroundColor(tabSwitchObject.selectedBackground)
+      end
+      self.term.write(" " .. tabSwitchObject.tabs[i] .. " ")
+      x = x + #tabSwitchObject.tabs[i] + 2
+    end
+  end
+  tabSwitchObject.event_click = function(x, y, button)
+    local index = 1
+    local tabX = tabSwitchObject.x
+    for i = 1, #tabSwitchObject.tabs do
+      if x >= tabX and x <= tabX + #tabSwitchObject.tabs[i] + 1 then
+        index = i
+        break
+      end
+      tabX = tabX + #tabSwitchObject.tabs[i] + 2
+    end
+    if index ~= tabSwitchObject.selected then
+      tabSwitchObject.selected = index
+      if tabSwitchObject.callback ~= nil then
+        tabSwitchObject.callback(tabSwitchObject.selected)
+      end
+    end
+  end
+  
+  self.screenObjects[tabSwitchObject.id] = tabSwitchObject
+  return tabSwitchObject
+end
+
 function cctinker:input(args)
   local requiredArgs = {x="number", y="number", placeholder="string"}
   local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function"}
