@@ -430,7 +430,7 @@ end
 
 function cctinker:input(args)
   local requiredArgs = {x="number", y="number", placeholder="string"}
-  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function"}
+  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function", width="number"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local inputObject = {
     type = "input",
@@ -457,11 +457,11 @@ function cctinker:input(args)
     if inputObject.input.text == "" then
       self.term.setTextColor(inputObject.placeholderColor)
       self.term.setBackgroundColor(inputObject.background)
-      self.term.write(string.sub(inputObject.placeholder, -inputObject.width))
+      self.term.write(ccstrings.ensure_width(string.sub(inputObject.placeholder, -inputObject.width), inputObject.width))
     else
       self.term.setTextColor(inputObject.color)
       self.term.setBackgroundColor(inputObject.background)
-      self.term.write(string.sub(inputObject.input.text, -inputObject.width))
+      self.term.write(ccstrings.ensure_width(string.sub(inputObject.input.text, -inputObject.width), inputObject.width))
     end
     if inputObject.input.cursor > inputObject.width then
       self.term.setCursorPos(inputObject.x + inputObject.width, inputObject.y)
