@@ -466,4 +466,119 @@ function cctinker:input(args)
   return inputObject
 end
 
+function cctinker:inputArea(args)
+  local requiredArgs = {x="number", y="number", width="number", height="number", placeholder="string"}
+  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local inputAreaObject = {
+    type = "inputArea",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width,
+    height = args.height,
+    placeholder = args.placeholder,
+    color = args.color or colors.white,
+    placeholderColor = args.placeholderColor or colors.gray,
+    background = args.background or colors.black,
+    callback = args.callback,
+    input = {
+      text = "",
+      cursor = 1,
+      focused = false
+    },
+    text = ""
+  }
+  inputAreaObject.draw = function()
+    local ccstrings = require("cc.strings")
+    self.term.setCursorPos(inputAreaObject.x, inputAreaObject.y)
+    if inputAreaObject.input.text == "" then
+      self.term.setTextColor(inputAreaObject.placeholderColor)
+      self.term.setBackgroundColor(inputAreaObject.background)
+      local placeholder = ccstrings.wrap(inputAreaObject.placeholder, inputAreaObject.width)
+      for i = 1, inputAreaObject.height do
+        local text = ccstrings.ensure_width(placeholder[i] or "", inputAreaObject.width)
+        self.term.setCursorPos(inputAreaObject.x, inputAreaObject.y + i - 1)
+        self.term.write(text)
+      end
+    else
+      self.term.setTextColor(inputAreaObject.color)
+      self.term.setBackgroundColor(inputAreaObject.background)
+      local texts = ccstrings.wrap(inputAreaObject.input.text, inputAreaObject.width)
+      for i = 1, inputAreaObject.height do
+        local text = ccstrings.ensure_width(texts[i] or "", inputAreaObject.width)
+        self.term.setCursorPos(inputAreaObject.x, inputAreaObject.y + i - 1)
+        self.term.write(text)
+      end
+    end
+    if inputAreaObject.input.cursor > inputAreaObject.width then
+      self.term.setCursorPos(inputAreaObject.x + inputAreaObject.width, inputAreaObject.y)
+    else
+      self.term.setCursorPos(inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
+    end
+    self.term.setCursorBlink(inputAreaObject.input.focused)
+  end
+  inputAreaObject.event_click = function(x, y, button)
+    inputAreaObject.input.focused = true
+  end
+  inputAreaObject.event_defocus = function()
+    if(inputAreaObject.input.focused) then
+      inputAreaObject.input.focused = false
+      if inputAreaObject.callback ~= nil then
+        inputAreaObject.callback(inputAreaObject.input.text)
+      end
+    end
+    inputAreaObject.text = inputAreaObject.input.text
+  end
+  inputAreaObject.event_char = function(char)
+    if inputAreaObject.input.focused then
+      inputAreaObject.input.text = string.sub(inputAreaObject.input.text, 1, inputAreaObject.input.cursor - 1) .. char .. string.sub(inputAreaObject.input.text, inputAreaObject.input.cursor)
+      inputAreaObject.input.cursor = inputAreaObject.input.cursor + 1
+    end
+  end
+  inputAreaObject.event_paste = function(text)
+    if inputAreaObject.input.focused then
+      inputAreaObject.input.text = string.sub(inputAreaObject.input.text, 1, inputAreaObject.input.cursor - 1) .. text .. string.sub(inputAreaObject.input.text, inputAreaObject.input.cursor)
+      inputAreaObject.input.cursor = inputAreaObject.input.cursor + #text
+    end
+  end
+  inputAreaObject.event_key = function(key)
+    if key == "backspace" then
+      if inputAreaObject.input.cursor > 1 then
+        inputAreaObject.input.text = string.sub(inputAreaObject.input.text, 1, inputAreaObject.input.cursor - 2) .. string.sub(inputAreaObject.input.text, inputAreaObject.input.cursor)
+        inputAreaObject.input.cursor = inputAreaObject.input.cursor - 1
+      end
+    elseif key == "delete" then
+      if inputAreaObject.input.cursor <= #inputAreaObject.input.text then
+        inputAreaObject.input.text = string.sub(inputAreaObject.input.text, 1, inputAreaObject.input.cursor - 1) .. string.sub(inputAreaObject.input.text, inputAreaObject.input.cursor + 1)
+      end
+    elseif key == "left" then
+      if inputAreaObject.input.cursor > 1 then
+        inputAreaObject.input.cursor = inputAreaObject.input.cursor - 1
+      end
+    elseif key == "right" then
+      if inputAreaObject.input.cursor <= #inputAreaObject.input.text then
+        inputAreaObject.input.cursor = inputAreaObject.input.cursor + 1
+      end
+    elseif key == "up" then
+      if inputAreaObject.input.cursor > inputAreaObject.width then
+        inputAreaObject.input.cursor = inputAreaObject.input.cursor - inputAreaObject.width
+      end
+    elseif key == "down" then
+      if inputAreaObject.input.cursor <= #inputAreaObject.input.text - inputAreaObject.width then
+        inputAreaObject.input.cursor = inputAreaObject.input.cursor + inputAreaObject.width
+      end
+    elseif key == "enter" then
+      inputAreaObject.input.focused = false
+      if inputAreaObject.callback ~= nil then
+        inputAreaObject.callback(inputAreaObject.input.text)
+      end
+      inputAreaObject.text = inputAreaObject.input.text
+    end
+  end
+
+  self.screenObjects[inputAreaObject.id] = inputAreaObject
+  return inputAreaObject
+end
+
 return cctinker
