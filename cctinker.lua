@@ -160,6 +160,33 @@ function cctinker:setObjects(objects)
   self.screenObjects = objects
 end
 
+function cctinker:frame(args)
+  local requiredArgs = {x="number", y="number", width="number", height="number"}
+  local optionalArgs = {color="number", background="number"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local frameObject = {
+    type = "frame",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width,
+    height = args.height,
+    color = args.color or colors.white,
+    background = args.background or colors.black
+  }
+  term = self.term
+
+  local o = {}
+  setmetatable(o, self)
+  self.__index = self
+  self.term = window.create(term.current(), frameObject.x, frameObject.y, frameObject.width, frameObject.height, true)
+  local x, y = self.term.getSize()
+  self.X = x
+  self.Y = y
+  self.background = frameObject.background
+  return o
+end
+
 function cctinker:text(args)
   local requiredArgs = {x="number", y="number", text="string"}
   local optionalArgs = {color="number", background="number"}
