@@ -402,7 +402,7 @@ function cctinker:tabSwitch(args)
         self.term.setTextColor(tabSwitchObject.selectedColor)
         self.term.setBackgroundColor(tabSwitchObject.selectedBackground)
       end
-      self.term.write(" " .. tabSwitchObject.tabs[i] .. " ")
+      self.term.write("\149" .. tabSwitchObject.tabs[i] .. " ")
       x = x + #tabSwitchObject.tabs[i] + 2
     end
   end
