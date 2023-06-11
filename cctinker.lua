@@ -38,7 +38,9 @@ function cctinker:_draw()
   self.term.setBackgroundColor(self.background)
   self.term.clear()
   for i, v in pairs(self.screenObjects) do
-    v:draw()
+    if v.visible == true then
+      v:draw()
+    end
   end
 end
 
@@ -64,7 +66,7 @@ function cctinker:loop()
         local button, x, y = eventData[2], eventData[3], eventData[4]
         for i, obj in pairs(self.screenObjects) do
           local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
-          if obj.event_click ~= nil and insideBounds then
+          if obj.visible and obj.event_click ~= nil and insideBounds then
             obj.event_click(x, y, button)
           elseif obj.event_defocus ~= nil and not insideBounds then
             obj.event_defocus()
@@ -74,21 +76,21 @@ function cctinker:loop()
         local direction, x, y = eventData[2], eventData[3], eventData[4]
         for i, obj in pairs(self.screenObjects) do
           local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
-          if obj.event_scroll ~= nil and insideBounds then
+          if obj.visible and obj.event_scroll ~= nil and insideBounds then
             obj.event_scroll(x, y, direction)
           end
         end
       elseif event == "mouse_drag" then
         local button, x, y = eventData[2], eventData[3], eventData[4]
         for i, obj in pairs(self.screenObjects) do
-          if obj.event_drag ~= nil then
+          if obj.visible and obj.event_drag ~= nil then
             obj.event_drag(x, y, button)
           end
         end
       elseif event == "char" then
         local char = eventData[2]
         for i, obj in pairs(self.screenObjects) do
-          if obj.event_char ~= nil then
+          if obj.visible and obj.event_char ~= nil then
             obj.event_char(char)
           end
         end
@@ -96,14 +98,14 @@ function cctinker:loop()
         local keycode, isHeld = eventData[2], eventData[3]
         local key = keys.getName(keycode)
         for i, obj in pairs(self.screenObjects) do
-          if obj.event_key ~= nil then
+          if obj.visible and obj.event_key ~= nil then
             obj.event_key(key, keycode, isHeld)
           end
         end
       elseif event == "paste" then
         local text = eventData[2]
         for i, obj in pairs(self.screenObjects) do
-          if obj.event_paste ~= nil then
+          if obj.visible and obj.event_paste ~= nil then
             obj.event_paste(text)
           end
         end
@@ -162,34 +164,25 @@ end
 
 function cctinker:frame(args)
   local requiredArgs = {x="number", y="number", width="number", height="number"}
-  local optionalArgs = {color="number", background="number"}
+  local optionalArgs = {background="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
-  local frameObject = {
-    type = "frame",
-    id = args.id or self:_generateId(),
-    x = args.x,
-    y = args.y,
-    width = args.width,
-    height = args.height,
-    color = args.color or colors.white,
-    background = args.background or colors.black
-  }
-  term = self.term
+  termObj = self.term
 
   local o = {}
   setmetatable(o, self)
+  self.visible = args.visible == nil or args.visible == true
   self.__index = self
-  self.term = window.create(term.current(), frameObject.x, frameObject.y, frameObject.width, frameObject.height, true)
+  self.term = window.create(termObj.current(), args.x, args.y, args.width, args.height, true)
   local x, y = self.term.getSize()
   self.X = x
   self.Y = y
-  self.background = frameObject.background
+  self.background = args.background or colors.black
   return o
 end
 
 function cctinker:text(args)
   local requiredArgs = {x="number", y="number", text="string"}
-  local optionalArgs = {color="number", background="number"}
+  local optionalArgs = {color="number", background="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local textObject = {
     type = "text",
@@ -200,7 +193,8 @@ function cctinker:text(args)
     height = 1,
     text = args.text,
     color = args.color or colors.white,
-    background = args.background or colors.black
+    background = args.background or colors.black,
+    visible = args.visible == nil or args.visible == true
   }
   textObject.draw = function()
     self.term.setCursorPos(textObject.x, textObject.y)
@@ -214,7 +208,7 @@ end
 
 function cctinker:textarea(args)
   local requiredArgs = {x="number", y="number", width="number", height="number", text="string"}
-  local optionalArgs = {color="number", background="number"}
+  local optionalArgs = {color="number", background="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local textareaObject = {
     type = "textarea",
@@ -225,7 +219,8 @@ function cctinker:textarea(args)
     height = args.height,
     text = args.text,
     color = args.color or colors.white,
-    background = args.background or colors.black
+    background = args.background or colors.black,
+    visible = args.visible == nil or args.visible == true
   }
   textareaObject.draw = function()
     self.term.setTextColor(textareaObject.color)
@@ -244,7 +239,7 @@ end
 
 function cctinker:button(args)
   local requiredArgs = {x="number", y="number", text="string", callback="function"}
-  local optionalArgs = {color="number", background="number"}
+  local optionalArgs = {color="number", background="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local buttonObject = {
     type = "button",
@@ -256,7 +251,8 @@ function cctinker:button(args)
     text = args.text,
     color = args.color or colors.white,
     background = args.background or colors.black,
-    event_click = args.callback
+    event_click = args.callback,
+    visible = args.visible == nil or args.visible == true
   }
   buttonObject.draw = function()
     self.term.setCursorPos(buttonObject.x, buttonObject.y)
@@ -270,7 +266,7 @@ end
 
 function cctinker:checkbox(args)
   local requiredArgs = {x="number", y="number", text="string"}
-  local optionalArgs = {color="number", background="number", checked="boolean", callback="function"}
+  local optionalArgs = {color="number", background="number", checked="boolean", callback="function", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local checkboxObject = {
     type = "checkbox",
@@ -283,7 +279,8 @@ function cctinker:checkbox(args)
     color = args.color or colors.white,
     background = args.background or colors.black,
     checked = args.checked or false,
-    callback = args.callback
+    callback = args.callback,
+    visible = args.visible == nil or args.visible == true
   }
   checkboxObject.draw = function()
     self.term.setCursorPos(checkboxObject.x, checkboxObject.y)
@@ -309,7 +306,7 @@ end
 
 function cctinker:radio(args)
   local requiredArgs = {x="number", y="number", options="table"}
-  local optionalArgs = {color="number", background="number", selected="number", callback="function"}
+  local optionalArgs = {color="number", background="number", selected="number", callback="function", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local radioObject = {
     type = "radio",
@@ -322,7 +319,8 @@ function cctinker:radio(args)
     color = args.color or colors.white,
     background = args.background or colors.black,
     selected = args.selected or 1,
-    callback = args.callback
+    callback = args.callback,
+    visible = args.visible == nil or args.visible == true
   }
   for i = 1, #radioObject.options do
     radioObject.width = math.max(radioObject.width, #radioObject.options[i] + 4)
@@ -358,7 +356,7 @@ end
 
 function cctinker:switch(args)
   local requiredArgs = {x="number", y="number", text="string"}
-  local optionalArgs = {color="number", background="number", state="boolean", callback="function"}
+  local optionalArgs = {color="number", background="number", state="boolean", callback="function", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local switchObject = {
     type = "switch",
@@ -371,6 +369,7 @@ function cctinker:switch(args)
     color = args.color or colors.white,
     background = args.background or colors.black,
     state = args.state or false,
+    visible = args.visible == nil or args.visible == true
   }
   switchObject.event_click = function(x, y, button)
     switchObject.state = not switchObject.state
@@ -399,7 +398,7 @@ end
 
 function cctinker:tabSwitch(args)
   local requiredArgs = {x="number", y="number", tabs="table"}
-  local optionalArgs = {color="number", background="number", selectedColor="number", selectedBackground="number", selected="number", callback="function"}
+  local optionalArgs = {color="number", background="number", selectedColor="number", selectedBackground="number", selected="number", callback="function", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local tabSwitchObject = {
     type = "tabSwitch",
@@ -414,7 +413,8 @@ function cctinker:tabSwitch(args)
     selectedColor = args.selectedColor or colors.white,
     selectedBackground = args.selectedBackground or colors.red,
     selected = args.selected or 1,
-    callback = args.callback
+    callback = args.callback,
+    visible = args.visible == nil or args.visible == true
   }
   for i = 1, #tabSwitchObject.tabs do
     tabSwitchObject.width = tabSwitchObject.width + #tabSwitchObject.tabs[i] + 2
@@ -457,7 +457,7 @@ end
 
 function cctinker:input(args)
   local requiredArgs = {x="number", y="number", placeholder="string"}
-  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function", width="number"}
+  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function", width="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local inputObject = {
     type = "input",
@@ -476,7 +476,8 @@ function cctinker:input(args)
       cursor = 1,
       focused = false
     },
-    text = ""
+    text = "",
+    visible = args.visible == nil or args.visible == true
   }
   inputObject.draw = function()
     local ccstrings = require("cc.strings")
@@ -553,7 +554,7 @@ end
 
 function cctinker:inputArea(args)
   local requiredArgs = {x="number", y="number", width="number", height="number", placeholder="string"}
-  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function"}
+  local optionalArgs = {color="number", placeholderColor="number", background="number", callback="function", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
   local inputAreaObject = {
     type = "inputArea",
@@ -572,7 +573,8 @@ function cctinker:inputArea(args)
       cursor = 1,
       focused = false
     },
-    text = ""
+    text = "",
+    visible = args.visible == nil or args.visible == true
   }
   inputAreaObject.draw = function()
     local ccstrings = require("cc.strings")
