@@ -15,7 +15,7 @@ Example:
 local cctinker = require("cctinker")
 local screen = cctinker:new(term)
 
-screen:text(1, 1, "Hello, world!", colors.white, colors.black)
+screen:text({x=1, y=1, text="Hello, world!", color=colors.white, background=colors.black})
 
 screen:loop()
 ```
