@@ -10,7 +10,7 @@ function cctinker:new(termObject)
   o.X, o.Y = o.term.getSize()
   o.background = colors.black
   o.COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black}
-  o.screenObjects = {}
+  o.children = {}
   return o
 end
 
@@ -34,9 +34,88 @@ end
 function cctinker:_draw()
   self.term.setBackgroundColor(self.background)
   self.term.clear()
-  for i, v in pairs(self.screenObjects) do
+  for i, v in pairs(self.children) do
     if v.visible == true then
       v:draw()
+    end
+  end
+end
+
+function cctinker:_handleEvent(event, eventData)
+
+  if event == "mouse_click" then
+    local button, x, y = eventData[2], eventData[3], eventData[4]
+    for i, obj in pairs(self.children) do
+      local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
+      if obj.visible and obj.children ~= nil and insideBounds then
+        -- offset x and y
+        eventData[3] = x - obj.x + 1
+        eventData[4] = y - obj.y + 1
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_click ~= nil and insideBounds then
+        obj.event_click(x, y, button)
+      elseif obj.event_defocus ~= nil and not insideBounds then
+        obj.event_defocus()
+      end
+    end
+  elseif event == "mouse_scroll" then
+    local direction, x, y = eventData[2], eventData[3], eventData[4]
+    for i, obj in pairs(self.children) do
+      local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
+      if obj.visible and obj.children ~= nil and insideBounds then
+        -- offset x and y
+        eventData[3] = x - obj.x + 1
+        eventData[4] = y - obj.y + 1
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_scroll ~= nil and insideBounds then
+        obj.event_scroll(x, y, direction)
+      end
+    end
+  elseif event == "mouse_drag" then
+    local button, x, y = eventData[2], eventData[3], eventData[4]
+    for i, obj in pairs(self.children) do
+      if obj.visible and obj.children then
+        -- offset x and y
+        eventData[3] = x - obj.x + 1
+        eventData[4] = y - obj.y + 1
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_drag ~= nil then
+        obj.event_drag(x, y, button)
+      end
+    end
+  elseif event == "char" then
+    local char = eventData[2]
+    for i, obj in pairs(self.children) do
+      if obj.visible and obj.children ~= nil then
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_char ~= nil then
+        obj.event_char(char)
+      end
+    end
+  elseif event == "key" then
+    local keycode, isHeld = eventData[2], eventData[3]
+    local key = keys.getName(keycode)
+    for i, obj in pairs(self.children) do
+      if obj.visible and obj.children ~= nil then
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_key ~= nil then
+        obj.event_key(key, keycode, isHeld)
+      end
+    end
+  elseif event == "paste" then
+    local text = eventData[2]
+    for i, obj in pairs(self.children) do
+      if obj.visible and obj.children ~= nil then
+        obj:_handleEvent(event, eventData)
+      end
+      if obj.visible and obj.event_paste ~= nil then
+        obj.event_paste(text)
+      end
     end
   end
 end
@@ -50,7 +129,7 @@ function cctinker:_generateId()
       local charIndex = math.random(1, #chars)
       id = id .. string.sub(chars, charIndex, charIndex)
     end
-  until self.screenObjects[id] == nil
+  until self.children[id] == nil
   return id
 end
 
@@ -59,54 +138,7 @@ function cctinker:loop()
     while self.looping do
       local eventData = {os.pullEvent()}
       local event = eventData[1]
-      if event == "mouse_click" then
-        local button, x, y = eventData[2], eventData[3], eventData[4]
-        for i, obj in pairs(self.screenObjects) do
-          local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
-          if obj.visible and obj.event_click ~= nil and insideBounds then
-            obj.event_click(x, y, button)
-          elseif obj.event_defocus ~= nil and not insideBounds then
-            obj.event_defocus()
-          end
-        end
-      elseif event == "mouse_scroll" then
-        local direction, x, y = eventData[2], eventData[3], eventData[4]
-        for i, obj in pairs(self.screenObjects) do
-          local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
-          if obj.visible and obj.event_scroll ~= nil and insideBounds then
-            obj.event_scroll(x, y, direction)
-          end
-        end
-      elseif event == "mouse_drag" then
-        local button, x, y = eventData[2], eventData[3], eventData[4]
-        for i, obj in pairs(self.screenObjects) do
-          if obj.visible and obj.event_drag ~= nil then
-            obj.event_drag(x, y, button)
-          end
-        end
-      elseif event == "char" then
-        local char = eventData[2]
-        for i, obj in pairs(self.screenObjects) do
-          if obj.visible and obj.event_char ~= nil then
-            obj.event_char(char)
-          end
-        end
-      elseif event == "key" then
-        local keycode, isHeld = eventData[2], eventData[3]
-        local key = keys.getName(keycode)
-        for i, obj in pairs(self.screenObjects) do
-          if obj.visible and obj.event_key ~= nil then
-            obj.event_key(key, keycode, isHeld)
-          end
-        end
-      elseif event == "paste" then
-        local text = eventData[2]
-        for i, obj in pairs(self.screenObjects) do
-          if obj.visible and obj.event_paste ~= nil then
-            obj.event_paste(text)
-          end
-        end
-      end
+      self:_handleEvent(event, eventData)
     end
   end
   local drawLoop = function()
@@ -136,27 +168,27 @@ function cctinker:exit()
 end
 
 function cctinker:getObject(id)
-  return self.screenObjects[id]
+  return self.children[id]
 end
 
 function cctinker:remove(screenObject)
   if type(screenObject) == "string" then
-    self.screenObjects[screenObject] = nil
+    self.children[screenObject] = nil
   else
-    self.screenObjects[screenObject.id] = nil
+    self.children[screenObject.id] = nil
   end
 end
 
 function cctinker:clear()
-  self.screenObjects = {}
+  self.children = {}
 end
 
 function cctinker:getObjects()
-  return self.screenObjects
+  return self.children
 end
 
 function cctinker:setObjects(objects)
-  self.screenObjects = objects
+  self.children = objects
 end
 
 function cctinker:frame(args)
@@ -172,7 +204,8 @@ function cctinker:frame(args)
   o.height = args.height
   o.x = args.x
   o.y = args.y
-  table.insert(self.screenObjects, o)
+  o.type = "frame"
+  table.insert(self.children, o)
   return o
 end
 
@@ -198,7 +231,7 @@ function cctinker:text(args)
     self.term.setBackgroundColor(textObject.background)
     self.term.write(textObject.text)
   end
-  self.screenObjects[textObject.id] = textObject
+  self.children[textObject.id] = textObject
   return textObject
 end
 
@@ -229,7 +262,7 @@ function cctinker:textarea(args)
       self.term.write(text)
     end
   end
-  self.screenObjects[textareaObject.id] = textareaObject
+  self.children[textareaObject.id] = textareaObject
   return textareaObject
 end
 
@@ -256,7 +289,7 @@ function cctinker:button(args)
     self.term.setBackgroundColor(buttonObject.background)
     self.term.write(buttonObject.text)
   end
-  self.screenObjects[buttonObject.id] = buttonObject
+  self.children[buttonObject.id] = buttonObject
   return buttonObject
 end
 
@@ -296,7 +329,7 @@ function cctinker:checkbox(args)
       checkboxObject.callback(x, y, button, checkboxObject.checked)
     end
   end
-  self.screenObjects[checkboxObject.id] = checkboxObject
+  self.children[checkboxObject.id] = checkboxObject
   return checkboxObject
 end
 
@@ -346,7 +379,7 @@ function cctinker:radio(args)
     end
   end
 
-  self.screenObjects[radioObject.id] = radioObject
+  self.children[radioObject.id] = radioObject
   return radioObject
 end
 
@@ -388,7 +421,7 @@ function cctinker:switch(args)
     self.term.write(" " .. switchObject.text)
   end
   
-  self.screenObjects[switchObject.id] = switchObject 
+  self.children[switchObject.id] = switchObject 
   return switchObject
 end
 
@@ -447,7 +480,7 @@ function cctinker:tabSwitch(args)
     end
   end
   
-  self.screenObjects[tabSwitchObject.id] = tabSwitchObject
+  self.children[tabSwitchObject.id] = tabSwitchObject
   return tabSwitchObject
 end
 
@@ -544,7 +577,7 @@ function cctinker:input(args)
       inputObject.text = inputObject.input.text
     end
   end
-  self.screenObjects[inputObject.id] = inputObject
+  self.children[inputObject.id] = inputObject
   return inputObject
 end
 
@@ -660,7 +693,7 @@ function cctinker:inputArea(args)
     end
   end
 
-  self.screenObjects[inputAreaObject.id] = inputAreaObject
+  self.children[inputAreaObject.id] = inputAreaObject
   return inputAreaObject
 end
 
