@@ -1,19 +1,16 @@
 -- Computercraft tkinter like Screen Library
 
-local cctinker = {
-  screenObjects = {},
-  background = colors.black,
-  COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black},
-}
+local cctinker = {}
 
 function cctinker:new(termObject)
   local o = {}
   setmetatable(o, self)
   self.__index = self
-  self.term = termObject or term
-  local x, y = self.term.getSize()
-  self.X = x
-  self.Y = y
+  o.term = termObject or term
+  o.X, o.Y = o.term.getSize()
+  o.background = colors.black
+  o.COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black}
+  o.screenObjects = {}
   return o
 end
 
@@ -166,17 +163,16 @@ function cctinker:frame(args)
   local requiredArgs = {x="number", y="number", width="number", height="number"}
   local optionalArgs = {background="number", visible="boolean"}
   self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
-  termObj = self.term
 
-  local o = {}
-  setmetatable(o, self)
-  self.visible = args.visible == nil or args.visible == true
-  self.__index = self
-  self.term = window.create(termObj.current(), args.x, args.y, args.width, args.height, true)
-  local x, y = self.term.getSize()
-  self.X = x
-  self.Y = y
-  self.background = args.background or colors.black
+  local o = self:new(window.create(self.term.current(), args.x, args.y, args.width, args.height, true)) 
+  o.background = args.background or colors.black
+  o.visible = args.visible == nil or args.visible == true
+  o.draw = o._draw
+  o.width = args.width
+  o.height = args.height
+  o.x = args.x
+  o.y = args.y
+  table.insert(self.screenObjects, o)
   return o
 end
 
