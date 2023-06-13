@@ -11,6 +11,7 @@ function cctinker:new(termObject)
   o.background = colors.black
   o.COLORS = {colors.white, colors.orange, colors.magenta, colors.lightBlue, colors.yellow, colors.lime, colors.pink, colors.gray, colors.lightGray, colors.cyan, colors.purple, colors.blue, colors.brown, colors.green, colors.red, colors.black}
   o.children = {}
+  o.eventListeners = {}
   return o
 end
 
@@ -118,6 +119,12 @@ function cctinker:_handleEvent(event, eventData)
       end
     end
   end
+
+  for e, callback in pairs(self.eventListeners) do
+    if e == event then
+      callback(unpack(eventData))
+    end
+  end
 end
 
 function cctinker:_generateId()
@@ -149,6 +156,14 @@ function cctinker:loop()
   end
   self.looping = true
   parallel.waitForAny(eventLoop, drawLoop)
+end
+
+function cctinker:addEventlistener(event, callback)
+  if type(event) ~= "string" then error("Event must be a string") end
+  if type(callback) ~= "function" then error("Callback must be a function") end
+  if self.eventListeners[event] ~= callback then
+    self.eventListeners[event] = callback
+  end
 end
 
 function cctinker:setBackground(color)
