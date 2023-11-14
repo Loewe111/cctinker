@@ -759,7 +759,7 @@ function cctinker:inputArea(args)
     else
       self:setCursorPos(inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
     end
-    -- self:setCursorBlink(inputAreaObject.input.focused)
+    self:setCursorBlink(inputAreaObject.input.focused, inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
   end
   inputAreaObject.event_click = function(x, y, button)
     inputAreaObject.input.focused = true
