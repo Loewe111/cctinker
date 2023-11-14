@@ -859,4 +859,50 @@ function cctinker:progressBar(args)
   return progressBarObject
 end
 
+function cctinker:slider(args)
+  local requiredArgs = {x="number", y="number", width="number", min="number", max="number"}
+  local optionalArgs = {color="number", background="number", callback="function", visible="boolean", value="number"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local sliderObject = {
+    type = "slider",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width,
+    height = 1,
+    min = args.min,
+    max = args.max,
+    value = args.value or args.min,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    callback = args.callback,
+    visible = args.visible == nil or args.visible == true
+  }
+  sliderObject.draw = function()
+    self:setCursorPos(sliderObject.x, sliderObject.y)
+    self:setTextColor(sliderObject.color)
+    self:setBackgroundColor(sliderObject.background)
+    local position = math.floor((sliderObject.value - sliderObject.min) / (sliderObject.max - sliderObject.min) * sliderObject.width)
+    position = math.max(0, math.min(sliderObject.width - 1, position))
+    self:write(string.rep(" ", position) .. "\127" .. string.rep(" ", sliderObject.width - position - 1))
+  end
+  sliderObject.event_click = function(x, y, button)
+    local progress = math.floor((x - sliderObject.x) / (sliderObject.width-1) * (sliderObject.max - sliderObject.min))
+    sliderObject.value = sliderObject.min + progress
+    if sliderObject.callback ~= nil then
+      sliderObject.callback(sliderObject.value)
+    end
+  end
+  sliderObject.event_drag = function(x, y, button)
+    local progress = math.floor((x - sliderObject.x) / (sliderObject.width-1) * (sliderObject.max - sliderObject.min))
+    progress = math.max(0, math.min(sliderObject.max - sliderObject.min, progress))
+    sliderObject.value = sliderObject.min + progress
+    if sliderObject.callback ~= nil then
+      sliderObject.callback(sliderObject.value)
+    end
+  end
+  self.children[sliderObject.id] = sliderObject
+  return sliderObject
+end
+
 return cctinker
