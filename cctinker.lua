@@ -832,4 +832,31 @@ function cctinker:inputArea(args)
   return inputAreaObject
 end
 
+function cctinker:progressBar(args)
+  local requiredArgs = {x="number", y="number", width="number", progress="number"}
+  local optionalArgs = {color="number", background="number", visible="boolean"}
+  self:_checkArgs(args, requiredArgs, optionalArgs) -- Error if required args are missing
+  local progressBarObject = {
+    type = "progressBar",
+    id = args.id or self:_generateId(),
+    x = args.x,
+    y = args.y,
+    width = args.width,
+    height = 1,
+    progress = args.progress,
+    color = args.color or colors.white,
+    background = args.background or colors.black,
+    visible = args.visible == nil or args.visible == true
+  }
+  progressBarObject.draw = function()
+    self:setCursorPos(progressBarObject.x, progressBarObject.y)
+    self:setTextColor(progressBarObject.color)
+    self:setBackgroundColor(progressBarObject.background)
+    local progress = math.floor(progressBarObject.progress * progressBarObject.width)
+    self:write(string.rep("\127", progress) .. string.rep(" ", progressBarObject.width - progress))
+  end
+  self.children[progressBarObject.id] = progressBarObject
+  return progressBarObject
+end
+
 return cctinker
