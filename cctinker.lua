@@ -652,7 +652,9 @@ function cctinker:input(args)
     else
       self:setCursorPos(inputObject.x + inputObject.input.cursor - 1, inputObject.y)
     end
-    self:setCursorBlink(inputObject.input.focused, inputObject.x + inputObject.input.cursor - 1, inputObject.y)
+    if inputObject.input.focused then
+      self:setCursorBlink(true, inputObject.x + inputObject.input.cursor - 1, inputObject.y)
+    end
   end
   inputObject.event_click = function(x, y, button)
     inputObject.input.focused = true
@@ -665,6 +667,7 @@ function cctinker:input(args)
       end
     end
     inputObject.text = inputObject.input.text
+    self:setCursorBlink(false)
   end
   inputObject.event_char = function(char)
     if inputObject.input.focused then
@@ -679,6 +682,7 @@ function cctinker:input(args)
     end
   end
   inputObject.event_key = function(key)
+    if not inputObject.input.focused then return end
     if key == "backspace" then
       if inputObject.input.cursor > 1 then
         inputObject.input.text = string.sub(inputObject.input.text, 1, inputObject.input.cursor - 2) .. string.sub(inputObject.input.text, inputObject.input.cursor)
@@ -759,7 +763,9 @@ function cctinker:inputArea(args)
     else
       self:setCursorPos(inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
     end
-    self:setCursorBlink(inputAreaObject.input.focused, inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
+    if inputAreaObject.input.focused then
+      self:setCursorBlink(true, inputAreaObject.x + inputAreaObject.input.cursor - 1, inputAreaObject.y)
+    end
   end
   inputAreaObject.event_click = function(x, y, button)
     inputAreaObject.input.focused = true
@@ -772,6 +778,7 @@ function cctinker:inputArea(args)
       end
     end
     inputAreaObject.text = inputAreaObject.input.text
+    self:setCursorBlink(false)
   end
   inputAreaObject.event_char = function(char)
     if inputAreaObject.input.focused then
@@ -786,6 +793,7 @@ function cctinker:inputArea(args)
     end
   end
   inputAreaObject.event_key = function(key)
+    if not inputAreaObject.input.focused then return end
     if key == "backspace" then
       if inputAreaObject.input.cursor > 1 then
         inputAreaObject.input.text = string.sub(inputAreaObject.input.text, 1, inputAreaObject.input.cursor - 2) .. string.sub(inputAreaObject.input.text, inputAreaObject.input.cursor)
