@@ -901,6 +901,16 @@ function cctinker:slider(args)
       sliderObject.callback(sliderObject.value)
     end
   end
+  sliderObject.event_scroll = function(x, y, direction)
+    if direction == 1 then
+      sliderObject.value = math.min(sliderObject.value + 1, sliderObject.max)
+    elseif direction == -1 then
+      sliderObject.value = math.max(sliderObject.value - 1, sliderObject.min)
+    end
+    if sliderObject.callback ~= nil then
+      sliderObject.callback(sliderObject.value)
+    end
+  end
   self.children[sliderObject.id] = sliderObject
   return sliderObject
 end
