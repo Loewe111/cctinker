@@ -62,6 +62,7 @@ function cctinker:_drawBuffer(buffer_id, old_buffer_id, force)
   local old_buffer = self.buffers[old_buffer_id]
   for y=1, #buffer do
     if buffer[y].text ~= old_buffer[y].text or buffer[y].fg ~= old_buffer[y].fg or buffer[y].bg ~= old_buffer[y].bg or force then
+      self.term.setCursorPos(1, y)
       self.term.blit(buffer[y].text, buffer[y].fg, buffer[y].bg)
     end
   end
