@@ -2,10 +2,11 @@
 
 local cctinker = {}
 
-function cctinker:new(termObject)
+function cctinker:new(termObject, debug)
   local o = {}
   setmetatable(o, self)
   self.__index = self
+  o.debug = debug or false
   o.term = termObject or term.current()
   o.X, o.Y = o.term.getSize()
   o.background = colors.black
@@ -63,6 +64,11 @@ function cctinker:_drawBuffer(buffer_id, old_buffer_id, force)
   for y=1, #buffer do
     if buffer[y].text ~= old_buffer[y].text or buffer[y].fg ~= old_buffer[y].fg or buffer[y].bg ~= old_buffer[y].bg or force then
       self.term.setCursorPos(1, y)
+      if self.debug then
+        self.term.setBackgroundColor(colors.white)
+        self.term.clearLine()
+        os.sleep(0.05)
+      end
       self.term.blit(buffer[y].text, buffer[y].fg, buffer[y].bg)
     end
   end
