@@ -55,13 +55,15 @@ function cctinker:_newBuffer()
   return buffer
 end
 
-function cctinker:_drawBuffer(buffer_id)
+function cctinker:_drawBuffer(buffer_id, old_buffer_id, force)
   self.term.setCursorBlink(false)
-  self.term.clear()
+  -- self.term.clear()
   local buffer = self.buffers[buffer_id]
+  local old_buffer = self.buffers[old_buffer_id]
   for y=1, #buffer do
-    self.term.setCursorPos(1, y)
-    self.term.blit(buffer[y].text, buffer[y].fg, buffer[y].bg)
+    if buffer[y].text ~= old_buffer[y].text or buffer[y].fg ~= old_buffer[y].fg or buffer[y].bg ~= old_buffer[y].bg or force then
+      self.term.blit(buffer[y].text, buffer[y].fg, buffer[y].bg)
+    end
   end
   self.term.setCursorPos(self.screenState.blinkX, self.screenState.blinkY)
   self.term.setCursorBlink(self.screenState.cursorBlink)
@@ -88,7 +90,7 @@ function cctinker:_draw()
   end
   if not self:_compareBuffers(self.screenState.currentBuffer, self.screenState.drawBuffer) then
     self.screenState.drawBuffer, self.screenState.currentBuffer = self.screenState.currentBuffer, self.screenState.drawBuffer
-    self:_drawBuffer(self.screenState.currentBuffer)
+    self:_drawBuffer(self.screenState.currentBuffer, self.screenState.drawBuffer)
   end
 end
 
@@ -204,7 +206,8 @@ function cctinker:loop()
     end
   end
   self.looping = true
-  self.buffers = {self:_newBuffer(), self:_newBuffer()}
+  self.buffers = {self:_newBuffer(), self:_newBuffer(true)}
+  self:_drawBuffer(self.screenState.currentBuffer, self.screenState.drawBuffer, true)
   parallel.waitForAny(eventLoop, drawLoop)
 end
 
