@@ -135,13 +135,14 @@ function cctinker:_handleEvent(event, eventData)
   elseif event == "mouse_drag" then
     local button, x, y = eventData[2], eventData[3], eventData[4]
     for i, obj in pairs(self.children) do
-      if obj.visible and obj.children then
+      local insideBounds = (y >= obj.y and y <= obj.y + obj.height - 1 and x >= obj.x and x <= obj.x + obj.width - 1)
+      if obj.visible and obj.children and insideBounds then
         -- offset x and y
         eventData[3] = x - obj.x + 1
         eventData[4] = y - obj.y + 1
         obj:_handleEvent(event, eventData)
       end
-      if obj.visible and obj.event_drag ~= nil then
+      if obj.visible and obj.event_drag ~= nil and insideBounds then
         obj.event_drag(x, y, button)
       end
     end
